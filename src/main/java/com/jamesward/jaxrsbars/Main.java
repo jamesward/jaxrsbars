@@ -16,7 +16,7 @@ import javax.ws.rs.core.UriBuilder;
 public class Main {
     public static void main(String[] args) throws IOException, URISyntaxException {
         final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
-        final URI baseUri = UriBuilder.fromUri("http://localhost/").port(port).build();
+        final URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
         final Application application = Application.builder(ResourceConfig.builder().packages(Main.class.getPackage().getName()).build()).build();
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
 
