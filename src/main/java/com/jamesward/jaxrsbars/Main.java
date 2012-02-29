@@ -8,8 +8,6 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.Application;
 import org.glassfish.jersey.server.ResourceConfig;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 import javax.ws.rs.core.UriBuilder;
 
