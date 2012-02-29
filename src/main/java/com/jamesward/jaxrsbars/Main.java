@@ -8,6 +8,8 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.Application;
 import org.glassfish.jersey.server.ResourceConfig;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -17,7 +19,16 @@ public class Main {
         final URI baseUri = UriBuilder.fromUri("http://localhost/").port(port).build();
         final Application application = Application.builder(ResourceConfig.builder().packages(Main.class.getPackage().getName()).build()).build();
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
-        System.in.read();
-        httpServer.stop();
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                httpServer.stop();
+            }
+        });
+
+        while (true) {
+            System.in.read();
+        }
     }
 }
