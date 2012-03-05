@@ -8,13 +8,14 @@ import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.jersey.grizzly2.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.Application;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.core.UriBuilder;
 
-public class AppServer {
+public class BarServer {
 
     public static DB mongoDB;
     
@@ -23,8 +24,9 @@ public class AppServer {
     public static void main(String[] args) throws IOException, URISyntaxException {
         final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
         final URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
-        final Application application = Application.builder(ResourceConfig.builder().packages(AppServer.class.getPackage().getName()).build()).build();
+        final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
+        httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), "/content");
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -40,7 +42,7 @@ public class AppServer {
             mongoDB.authenticate(mongolabUri.getUsername(), mongolabUri.getPassword());
         }
 
-        contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : "http://localhost:9090/";
+        contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : "/content/";
 
         while (true) {
             System.in.read();

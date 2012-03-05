@@ -1,1 +1,1 @@
-web:    java -cp target/dependency/*:target/classes com.jamesward.jaxrsbars.AppServer
+web:    java -cp target/dependency/*:target/classes com.jamesward.jaxrsbars.BarServer
