@@ -1,6 +1,9 @@
 $(function() {
     $("body").append('<h4>Bars:</h4>');
     $("body").append('<ul id="bars"></ul>');
+
+    loadbars();
+
     $("body").append('<input id="bar"/>');
     $("body").append('<button id="submit">GO!</button>');
 
@@ -11,8 +14,6 @@ $(function() {
             addbar();
         }
     });
-
-    loadbars();
 
 });
 
