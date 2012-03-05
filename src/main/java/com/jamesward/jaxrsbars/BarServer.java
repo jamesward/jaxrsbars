@@ -7,8 +7,7 @@ import java.net.URISyntaxException;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.http.server.StaticHttpHandler;
+import org.glassfish.grizzly.http.server.*;
 import org.glassfish.jersey.grizzly2.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.Application;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -27,6 +26,10 @@ public class BarServer {
         final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
         httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), "/content");
+
+        for (NetworkListener networkListener : httpServer.getListeners()) {
+            networkListener.getFileCache().setEnabled(false);
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

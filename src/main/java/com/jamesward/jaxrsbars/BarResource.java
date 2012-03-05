@@ -13,12 +13,12 @@ public class BarResource {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String index() {
-        return "<!DOCTYPE html> " +
-                "<html>" +
-                "<head>" +
-                "<script type='text/javascript' src='" + BarServer.contentUrl + "jquery-1.7.min.js'></script>" +
-                "<script type='text/javascript' src='" + BarServer.contentUrl + "index.js'></script>" +
-                "</head>" +
+        return "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "<script type='text/javascript' src='" + BarServer.contentUrl + "jquery-1.7.min.js'></script>\n" +
+                "<script type='text/javascript' src='" + BarServer.contentUrl + "index.js'></script>\n" +
+                "</head>\n" +
                 "</html>";
     }
 
