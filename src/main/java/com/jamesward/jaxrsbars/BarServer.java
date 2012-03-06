@@ -20,7 +20,7 @@ public class BarServer {
     
     public static String contentUrl;
 
-    public static void main(String[] args) throws IOException, URISyntaxException {
+    public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException {
         final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
         final URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
         final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
@@ -47,8 +47,6 @@ public class BarServer {
 
         contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : "/content/";
 
-        while (true) {
-            System.in.read();
-        }
+        Thread.currentThread().join();
     }
 }
