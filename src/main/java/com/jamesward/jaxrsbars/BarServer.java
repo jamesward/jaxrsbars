@@ -26,9 +26,12 @@ public class BarServer {
         final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
         httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), "/content");
-
+        
         for (NetworkListener networkListener : httpServer.getListeners()) {
-            networkListener.getFileCache().setEnabled(false);
+            if (System.getenv("PROD") == null) {
+                // disable the file cache unless we are in PROD mode
+                networkListener.getFileCache().setEnabled(false);
+            }
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
