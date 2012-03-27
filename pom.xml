@@ -90,6 +90,10 @@
                         <goals><goal>copy-dependencies</goal></goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <overWriteReleases>true</overWriteReleases>
+                    <overWriteSnapshots>true</overWriteSnapshots>
+                </configuration>
             </plugin>
         </plugins>
     </build>
