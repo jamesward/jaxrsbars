@@ -12,6 +12,9 @@
             <id>project.local</id>
             <name>project</name>
             <url>file:${project.basedir}/repo</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
 
