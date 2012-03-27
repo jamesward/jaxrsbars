@@ -15,6 +15,9 @@
             <snapshots>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
+            <releases>
+                <updatePolicy>always</updatePolicy>
+            </releases>
         </repository>
     </repositories>
 
