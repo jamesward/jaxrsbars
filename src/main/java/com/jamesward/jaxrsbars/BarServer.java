@@ -20,12 +20,14 @@ public class BarServer {
     
     public static String contentUrl;
 
+    private static final String CONTENT_PATH = "/content";
+
     public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException {
         final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
         final URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
         final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
-        httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), "/content");
+        httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), CONTENT_PATH);
         
         for (NetworkListener networkListener : httpServer.getListeners()) {
             if (System.getenv("PROD") == null) {
@@ -48,7 +50,7 @@ public class BarServer {
             mongoDB.authenticate(mongolabUri.getUsername(), mongolabUri.getPassword());
         }
 
-        contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : "/content/";
+        contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : CONTENT_PATH;
 
         Thread.currentThread().join();
     }

@@ -23,7 +23,7 @@ function loadbars() {
         success: function(data) {
             $("#bars").children().remove();
             $.each(data, function(index, item) {
-                $("#bars").append("<li>" + item.name + "</li>");
+                $("#bars").append($("<li>").text(item.name));
             });
         }
     });
