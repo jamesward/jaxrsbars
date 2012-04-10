@@ -9,6 +9,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
 import org.glassfish.grizzly.http.server.*;
 import org.glassfish.jersey.grizzly2.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.media.json.JsonJacksonModule;
 import org.glassfish.jersey.server.Application;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -26,6 +27,7 @@ public class BarServer {
         final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
         final URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
         final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
+        application.addModules(new JsonJacksonModule());
         final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
         httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), CONTENT_PATH);
         
