@@ -23,11 +23,11 @@ To get a copy of this application locally, use git from the command-line or from
 The JAX-RS & MongoDB Server
 ---------------------------
 
-Lets start by setting up a server.  Typically this means using Tomcat, creating WAR files, etc.  But most developers are now gravitating towards a containerless approach that makes it easier to have dev/prod parity and works well for quick development iterations.  In the containerless approach the HTTP handler is just another library in your application.  Instead of deploying a partial application into a container, the application contains everything it needs and is simply "run".  Lets start with a Maven build that includes the dependencies needed to setup a containerless JAX-RS server using Jersey, Jackson, and the Grizzly HTTP handling library.  Here is the `pom.xml` file for the Maven build:
+Lets start by setting up a server.  Typically this means using Tomcat, creating WAR files, etc.  But many developers are now gravitating towards a containerless approach that makes it easier to have dev/prod parity and works well for quick development iterations.  In the containerless approach the HTTP handler is just another library in your application.  Instead of deploying a partial application into a container, the application contains everything it needs and is simply "run".  Lets start with a Maven build that includes the dependencies needed to setup a containerless JAX-RS server using Jersey, Jackson, and the Grizzly HTTP handling library.  Here is the `pom.xml` file for the Maven build:
 
     <?xml version="1.0" encoding="UTF-8"?>
     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
         <modelVersion>4.0.0</modelVersion>
         <groupId>com.jamesward</groupId>
@@ -36,58 +36,29 @@ Lets start by setting up a server.  Typically this means using Tomcat, creating 
 
         <dependencies>
             <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-common</artifactId>
-                <version>2.0-m01</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-server</artifactId>
-                <version>2.0-m01</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-client</artifactId>
-                <version>2.0-m01</version>
+                <groupId>org.glassfish.grizzly</groupId>
+                <artifactId>grizzly-http-server</artifactId>
+                <version>2.2.4</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
                 <artifactId>jersey-container-grizzly2-http</artifactId>
-                <version>2.0-m01</version>
+                <version>2.0-m02</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-jaxrs</artifactId>
-                <version>1.9.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-xc</artifactId>
-                <version>1.9.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>mongo-java-driver</artifactId>
-                <version>2.7.3</version>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-json</artifactId>
+                <version>2.0-m02</version>
             </dependency>
             <dependency>
                 <groupId>net.vz.mongodb.jackson</groupId>
                 <artifactId>mongo-jackson-mapper</artifactId>
-                <version>1.4.0</version>
+                <version>1.4.1</version>
             </dependency>
         </dependencies>
 
         <build>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.3.2</version>
-                    <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
-                    </configuration>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -105,7 +76,8 @@ Lets start by setting up a server.  Typically this means using Tomcat, creating 
 
     </project>
 
-Notice that this project doesn't use WAR packaging.  Instead the compiled classes will go into a JAR file.  This means I need to provide a Java class with a good 'ole "static void main" method that starts the server.  Then assuming I have my Java classpath set to include the necessary dependencies, I can simply start the server with the `java` command.  Using the `maven-dependency-plugin` provides a simple way to copy the project dependencies into a single directory, thus making it easy to set the classpath.
+
+Notice that this project doesn't use WAR packaging.  Instead the compiled classes will go into a JAR file.  This means I need to provide a Java class with a good 'ole "static void main" method that starts the server.  Then assuming the Java classpath is set to include the necessary dependencies, the server can be started using the `java` command.  The `maven-dependency-plugin` provides a simple way to copy the project dependencies into a single directory, thus making it easy to set the classpath.
 
 Here is the `com.jamesward.jaxrsbars.BarServer` class that starts the Grizzly server, sets up a MongoDB connection, and content URL (which we will find out more about shortly):
 
@@ -120,6 +92,7 @@ Here is the `com.jamesward.jaxrsbars.BarServer` class that starts the Grizzly se
     import com.mongodb.MongoURI;
     import org.glassfish.grizzly.http.server.*;
     import org.glassfish.jersey.grizzly2.GrizzlyHttpServerFactory;
+    import org.glassfish.jersey.media.json.JsonJacksonModule;
     import org.glassfish.jersey.server.Application;
     import org.glassfish.jersey.server.ResourceConfig;
 
@@ -131,16 +104,18 @@ Here is the `com.jamesward.jaxrsbars.BarServer` class that starts the Grizzly se
 
         public static String contentUrl;
 
+        private static final String CONTENT_PATH = "/content";
+
         public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException {
             final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
             final URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
             final Application application = Application.builder(ResourceConfig.builder().packages(BarServer.class.getPackage().getName()).build()).build();
+            application.addModules(new JsonJacksonModule());
             final HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, application);
-            httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), "/content");
+            httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), CONTENT_PATH);
 
             for (NetworkListener networkListener : httpServer.getListeners()) {
-                if (System.getenv("PROD") == null) {
-                    // disable the file cache unless we are in PROD mode
+                if (System.getenv("FILE_CACHE_ENABLED") == null) {
                     networkListener.getFileCache().setEnabled(false);
                 }
             }
@@ -159,13 +134,13 @@ Here is the `com.jamesward.jaxrsbars.BarServer` class that starts the Grizzly se
                 mongoDB.authenticate(mongolabUri.getUsername(), mongolabUri.getPassword());
             }
 
-            contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : "/content/";
+            contentUrl = System.getenv("CONTENT_URL") != null ? System.getenv("CONTENT_URL") : CONTENT_PATH;
 
             Thread.currentThread().join();
         }
     }
 
-Notice that the HTTP port, MongoDB connection URI, and the content URL have default values for local development but they can also be set via environment variables.  This provides a simple way to configure the application for different environments.  At the end of this article we will run this application on Heroku where those values will come from environment variables.  There is also an environment variable that allows the static file cache to be turned on and off.  This provides a simple way to shorten the change / test loop in development or gain better performance in production.  File caching can be turned on by simply setting an environment variable named "PROD" which we will use when we deploy this app on Heroku.
+Notice that the HTTP port, MongoDB connection URI, and the content URL have default values for local development but they can also be set via environment variables.  This provides a simple way to configure the application for different environments.  At the end of this article we will run this application on Heroku where those values will come from the environment.  There is also an environment variable named `FILE_CACHE_ENABLED` that allows the static file cache to be turned on and off.  Turning the file cache off provides a simple way to shorten the change / test loop in development while turning it ok provides better performance in production.
 
 Since this example uses MongoDB for data persistence, if you want to do local development on this project you will need to install the MongoDB server on your system.  To start the `BarServer` locally you will first need to do a Maven build:
 
@@ -173,13 +148,9 @@ Since this example uses MongoDB for data persistence, if you want to do local de
 
 Then simply start the `BarServer` by running:
 
-    java -cp target/dependency/*:target/classes com.jamesward.jaxrsbars.BarServer
+    java -cp target/classes:target/dependency/* com.jamesward.jaxrsbars.BarServer
 
-######
-resources/META-INF/services
-######
-
-This application will store a list of "bars" so there is a simple Java object named "com.jamesward.jaxrsbars.Bar" containing:
+This application will store a list of "bars" so there is a simple Java object named `com.jamesward.jaxrsbars.Bar` containing:
 
     package com.jamesward.jaxrsbars;
 
@@ -195,7 +166,7 @@ This application will store a list of "bars" so there is a simple Java object na
 
 The `@Id` annotation will be used by the `mongo-jackson-mapper` library to determine which file will store the primary key.  Each `Bar` also has a `name` property.  For this example I'm using simple direct field access instead of the more verbose getters & setters.
 
-To configure the RESTful endpoints that will provide access to create and fetch the `Bar` objects there is a Java object named `com.jamesward.jaxrsbars.BarResource` containing:
+To configure the RESTful endpoints that will provide access to create and fetch the `Bar` objects there is a Java object named `com.jamesward.jaxrsbars.BarResource` containing (I've ommitted the `index` method here but will cover it shortly):
 
     package com.jamesward.jaxrsbars;
 
@@ -253,7 +224,7 @@ Great!  The RESTful services for creating and fetching the `Bar` object works.  
 The JavaScript & jQuery Client
 ------------------------------
 
-You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks for resources in the `src/main/webapp` directory and handles requests to those resources via requests to the `/content` URL.  This project contains a copy of the minified jQuery JavaScript library in the `src/main/webapp/jquery-1.7.min.js` file.  That library is available via requests to the `/content/jquery-1.7.min.js` URL.  There is also a `src/main/webapp/index.js` file which is the entire client-side / UI of this application.  It renders creates and fetches the `Bar` objects from the RESTful services using jQuery and renders the HTML form and list of `Bar` objects.  Here is the contents of the `index.js` file:
+You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks for resources in the `src/main/webapp` directory and handles requests to those resources via requests to the `/content` URL.  This project contains a copy of the minified jQuery JavaScript library in the `src/main/webapp/jquery-1.7.min.js` file.  That library is available via requests to the `/content/jquery-1.7.min.js` URL.  There is also a `src/main/webapp/index.js` file which is the entire client-side / UI of this application.  It renders, creates, and fetches the `Bar` objects from the RESTful services using jQuery and renders the HTML form and list of `Bar` objects.  Here is the contents of the `index.js` file:
 
     function loadbars() {
         $.ajax("/listBars", {
@@ -297,9 +268,9 @@ You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks f
 
     });
 
-The `loadbars` function makes an `ajax` request (using jQuery) to `/listBars` and then updates the web page with the list.  The `addbar` function makes an `ajax` request to `/addBar`, passing it the JSON string for a `Bar` object containing the `name` specified in an input field.  The anonymous function (`function() {`) gets called when the page is fully loaded and ready.  This function adds the unordered list to the page that will contain the "bars", calls the `loadbars` function, adds the form elements to create new bars, and adds event handlers for clicking on the "GO!" button and pressing the `Enter` key in the input field that both call the `addbar` function.
+The `loadbars` function makes an `ajax` request (using jQuery) to `/listBars` and then updates the web page with the list.  The `addbar` function makes an `ajax` request to `/addBar`, passing it the JSON string for a `Bar` object containing the `name` specified in an input field.  The anonymous function `function() {` gets called when the page ready.  This function adds the unordered list to the page that will contain the "bars", calls the `loadbars` function, adds the form elements to create new bars, and adds event handlers for clicking on the "GO!" button / pressing the `Enter` key in the input field.  Both of those event handlers call the `addbar` function.
 
-The last thing to do is create a simple HTML page that will bootstrap the application in the browser by loading the jQuery library and the `index.js` JavaScript.  This could potentially also be a static file.  However, shortly we will load the client-side of the app (`index.js` and `jquery-1.7.min.js` from a Content Delivery Network (CDN) which will require our bootstrap file to change based on the environment it's running in (thus the reason for the `contentUrl` property in the `BarServer` class).  To handle this there is a `GET` request handler in `BarServer` that handles requests to the `/` URL and produces `text/html` content:
+This final thing this application needs is a simple HTML page that will bootstrap the application in the browser by loading the jQuery library and the `index.js` JavaScript.  This could potentially also be a static file.  However, shortly we will load the client-side of the app (`index.js` and `jquery-1.7.min.js` from a Content Delivery Network (CDN) which will require our bootstrap file to change based on the environment it's running in (thus the reason for the `contentUrl` property in the `BarServer` class).  To handle this there is a `GET` request handler in `BarResource` that handles requests to the `/` URL and produces `text/html` content:
 
     @GET
     @Produces(MediaType.TEXT_HTML)

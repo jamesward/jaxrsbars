@@ -32,8 +32,7 @@ public class BarServer {
         httpServer.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp"), CONTENT_PATH);
         
         for (NetworkListener networkListener : httpServer.getListeners()) {
-            if (System.getenv("PROD") == null) {
-                // disable the file cache unless we are in PROD mode
+            if (System.getenv("FILE_CACHE_ENABLED") == null) {
                 networkListener.getFileCache().setEnabled(false);
             }
         }
