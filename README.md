@@ -297,7 +297,7 @@ Deploying on the Cloud with Heroku and Amazon CloudFront
 
 To deploy the application on the cloud you can use Heroku, a Java-capable Platform-as-a-Service (PaaS) provider.  For this example we will upload the code via git to Heroku.  This method supports "Continuous Delivery" by making incremental changes very easy to deploy.  Everytime new code is received by Heroku (through a git push), the Maven build will be run and the new version deployed.  Follow these steps to deploy your copy of this app on Heroku:
 
-1) [Signup for a Heroku account](http://heroku.com/signup).  You will be able to deploy and run this application for free on one [dyno]().
+1) [Signup for a Heroku account](http://heroku.com/signup).  You will be able to deploy and run this application for free on one [dyno](https://devcenter.heroku.com/articles/dynos).
 
 2) [Install the Heroku Toolbelt](http://toolbelt.heroku.com).
 
@@ -345,32 +345,30 @@ Follow these steps to setup CloudFront:
 
     https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
 
-2) Create a new CloudFront distribution with the origin server set to your Heroku app's domain name:
+3) Open: https://console.aws.amazon.com/cloudfront/home
 
-    1) Open: https://console.aws.amazon.com/cloudfront/home
+4) Click "Create Distribution"
 
-    2) Click "Create Distribution"
+5) Select "Custom Origin"
 
-    3) Select "Custom Origin"
+6) Enter the domain name of your application on Heroku
 
-    4) Enter the domain name of your application on Heroku
+7) Select "Continue"
 
-    5) Select "Continue"
+8) Select "Continue" again
 
-    6) Select "Continue" again
+9) Select "Create Distribution"
 
-    7) Select "Create Distribution"
+10) Wait a few minutes while the CloudFront Distribution is provisioned
 
-    8) Wait a few minutes while the CloudFront Distribution is provisioned
-
-3) Using the newly created CloudFront distribution, configure your Heroku app to use CloudFront for static content:
+11) Using the newly created CloudFront distribution, configure your Heroku app to use CloudFront for static content:
 
         heroku config:add CONTENT_URL=http://yourdomainname.cloudfront.net/content
 
-4) Reload your app in your browser
+12) Reload your app in your browser
 
 
 You now have a Client/Server web app in the cloud with the client-side edge cached on a CDN!  You can now expand on this example to build out much more complex applications that have a distinct Client/Server separation.  As you explore this new way of building applications you will begin to discover a vast and emerging variety of tools and libraries to help you build the client-side.  I recommend that you check out [Backbone.js](http://backbonejs.org/) for client-side MVC and [Underscore.js](http://documentcloud.github.com/underscore/) for client-side templating.  For beautifying the UI check out [Twitter Bootstrap](http://twitter.github.com/bootstrap).  There are many different choices that you should evaluate but those are good libraries to start with.
 
-If you'd like to see a live demo of this project check out:
+If you'd like to see a live demo of this project check out:  
 [http://jaxrsbars.herokuapp.com](http://jaxrsbars.herokuapp.com)
