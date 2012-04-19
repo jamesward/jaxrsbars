@@ -13,11 +13,12 @@ The modern web application architecure moves the User Interface to the client wh
 
 There are many different ways to build a browser-based client but for this example I will use jQuery and JavaScript since they are the most common.  There are also many ways to expose the RESTful services.  For this example I will use JAX-RS since it is the Java standard for RESTful services.  For back-end data persistence this example will use MongoDB, a NoSQL database.
 
-The code for this example is available at:
+The code for this example is available at:  
 http://github.com/jamesward/jaxrsbars
 
 To get a copy of this application locally, use git from the command-line or from your IDE and clone the following repository:
-git://github.com/jamesward/jaxrsbars.git
+
+    git://github.com/jamesward/jaxrsbars.git
 
 
 The JAX-RS & MongoDB Server
@@ -287,7 +288,7 @@ This final thing this application needs is a simple HTML page that will bootstra
 This very simple HTML page simple loads `jQuery` and the `index.js` JavaScript files using `BarServer.contentUrl` as the basis.  Since `BarServer.contentUrl` can be changed through the `CONTENT_URL` environment variable it is now very easy to fetch those files from an alternative location.  However they are always available from this server via the `/content` URL.
 
 If you are running the application locally you should be able to add new "bars" and see the list by opening [http://localhost:8080](http://localhost:8080) in your browser.  If you inspect the requests made to render the page (with a tool like Firebug) you should see four requests:
-'img/requests.png'
+!(img/requests.png)
 
 Adding a new "Bar" from the form should do a `POST` request and then refresh the list of "bars" via a `GET` request.  Now that we have a fully functional Client/Server web app lets deploy it on the cloud and then load the client-side from a CDN.
 
@@ -370,5 +371,5 @@ Follow these steps to setup CloudFront:
 
 You now have a Client/Server web app in the cloud with the client-side edge cached on a CDN!  You can now expand on this example to build out much more complex applications that have a distinct Client/Server separation.  As you explore this new way of building applications you will begin to discover a vast and emerging variety of tools and libraries to help you build the client-side.  I recommend that you check out [Backbone.js](http://backbonejs.org/) for client-side MVC and [Underscore.js](http://documentcloud.github.com/underscore/) for client-side templating.  For beautifying the UI check out [Twitter Bootstrap](http://twitter.github.com/bootstrap).  There are many different choices that you should evaluate but those are good libraries to start with.
 
-If you'd like to see a live demo of this project check out:  
+If you'd like to see a live demo of this project check out:
 [http://jaxrsbars.herokuapp.com](http://jaxrsbars.herokuapp.com)
