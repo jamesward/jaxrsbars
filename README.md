@@ -17,7 +17,7 @@ The code for this example is available at:
 http://github.com/jamesward/jaxrsbars
 
 To get a copy of this application locally, use git from the command-line or from your IDE and clone the following repository:
-<TODO: Add git repo url>
+git://github.com/jamesward/jaxrsbars.git
 
 
 The JAX-RS & MongoDB Server
@@ -307,7 +307,7 @@ To deploy the application on the cloud you can use Heroku, a Java-capable Platfo
 
 This will also help you setup your SSH key and associate it with your Heroku account.  The SSH key will be used for authenticating git pushes (uploads).
 
-4) Provision a new app on Heroku (using the [cedar stack]()) with the [MongoLab add-on]() (run this command in the root of your project):
+4) Provision a new app on Heroku (using the [cedar stack](https://devcenter.heroku.com/articles/cedar)) with the [MongoLab add-on](https://addons.heroku.com/mongolab) (run this command in the root of your project):
 
         heroku create --stack cedar --addons mongolab
 
@@ -319,7 +319,7 @@ The git remote endpoint for the newly created app will be named "heroku" and wil
 
 You can also do this from within your IDE.  This will copy the source files, Maven build descriptor, and the `Procfile` to Heroku.  Heroku will then run the Maven build on the project, deploy the app onto a dyno, and launch the web process defined in the `Procfile`.  The `Procfile` is just a simple way to map process names to commands.  Here is the `Procfile` for this project:
 
-        web:    java -cp target/dependency/*:target/classes com.jamesward.jaxrsbars.BarServer
+        web:    java -cp target/classes:target/dependency/* com.jamesward.jaxrsbars.BarServer
 
 Notice that the launch command on Heroku is the same as the one that you used to start `BarServer` locally.
 
@@ -327,28 +327,50 @@ Once the git push is complete you should be able to open your app in the browser
 
         heroku open
 
-6) By default caching and 304 handling was turned off for local development.  Turn that on by setting the `PROD` environment variable on Heroku:
+6) By default caching and 304 handling was turned off for local development.  Turn that on by setting the `FILE_CACHE_ENABLED` environment variable on Heroku:
 
-        heroku config:add PROD=true
+        heroku config:add FILE_CACHE_ENABLED=true
 
 You can see a full list of environment variables for your application (including `MONGOLAB_URI` that was set by the MongoLab add-on) by running:
 
         heroku config
 
-At this point everything should be working wonderfully on the cloud.  But we can take things one step further to increase performance of the app.  CDNs will edge catch static assets around the world, meaning that a copy of the content is placed very near the consumer of the content.  This process really only works for static assets but since the client-side of this application is now static assets (`index.js` and `jquery-1.7.min.js`) those files can be loaded from a CDN instead of from the more centralized server on Heroku.  The HTML page that bootstraps the app will still be loaded directly from Heroku because it's not fully static and because we want to page the user loads in their browser to be on the same domain as the RESTful services so that we don't run into cross-origin browser restrictions.
+At this point everything should be working wonderfully on the cloud.  But we can take things one step further to increase performance of the app.  CDNs will edge catch static assets around the world, meaning that a copy of the content is placed very near the consumer of the content.  This process really only works for static assets but since the client-side of this application is now static assets (`index.js` and `jquery-1.7.min.js`) those files can be loaded from a CDN instead of from the more centralized server on Heroku.  The HTML page that bootstraps the app will still be loaded directly from Heroku because it's not fully static and because we want want to avoid cross-origin browser restrictions.  To avoid the cross-origin browser restictions the page the user loads in their browser must be on the same domain as the RESTful services.
 
 For this example we will use the Amazon CloudFront CDN service.  Amazon uses a purely usage based pricing model so this part won't be free, but for this small example app it shouldn't cost more than a dollar to try it out.  CloudFront provides a way to retreive the static assets that it will cache, from an origin server.  This makes it very easy to configure and switch to using CloudFront for static assets.  If CloudFront does not have the correct version of the static asset it will go back to the origin server to get it.
 
 Follow these steps to setup CloudFront:
 
-1) Create an account on AWS
+1) Create an account on AWS:
 
-2) Create a new CloudFront distribution with the origin server set to your Heroku app's domain name.
+    https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
 
-3) Wait for the CloudFront distribution to become active.
+2) Create a new CloudFront distribution with the origin server set to your Heroku app's domain name:
 
-4) Configure your Heroku app to use CloudFront for static content:
+    1) Open: https://console.aws.amazon.com/cloudfront/home
 
-        heroku config:add CONTENT_URL=http://adsfasdf.cloudfront.net/content
+    2) Click "Create Distribution"
 
-5) Reload your app in your browser
+    3) Select "Custom Origin"
+
+    4) Enter the domain name of your application on Heroku
+
+    5) Select "Continue"
+
+    6) Select "Continue" again
+
+    7) Select "Create Distribution"
+
+    8) Wait a few minutes while the CloudFront Distribution is provisioned
+
+3) Using the newly created CloudFront distribution, configure your Heroku app to use CloudFront for static content:
+
+        heroku config:add CONTENT_URL=http://yourdomainname.cloudfront.net/content
+
+4) Reload your app in your browser
+
+
+You now have a Client/Server web app in the cloud with the client-side edge cached on a CDN!  You can now expand on this example to build out much more complex applications that have a distinct Client/Server separation.  As you explore this new way of building applications you will begin to discover a vast and emerging variety of tools and libraries to help you build the client-side.  I recommend that you check out [Backbone.js](http://backbonejs.org/) for client-side MVC and [Underscore.js](http://documentcloud.github.com/underscore/) for client-side templating.  For beautifying the UI check out [Twitter Bootstrap](http://twitter.github.com/bootstrap).  There are many different choices that you should evaluate but those are good libraries to start with.
+
+If you'd like to see a live demo of this project check out:
+[http://jaxrsbars.herokuapp.com](http://jaxrsbars.herokuapp.com)
