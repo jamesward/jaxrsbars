@@ -18,7 +18,7 @@ $(function() {
 });
 
 function loadbars() {
-    $.ajax("/listBars", {
+    $.ajax("/bars", {
         contentType: "application/json",
         success: function(data) {
             $("#bars").children().remove();
@@ -31,7 +31,7 @@ function loadbars() {
 
 function addbar() {
     $.ajax({
-        url: "/addBar",
+        url: "/bar",
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',

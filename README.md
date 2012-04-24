@@ -185,7 +185,7 @@ To configure the RESTful endpoints that will provide access to create and fetch 
             return JacksonDBCollection.wrap(BarServer.mongoDB.getCollection(Bar.class.getSimpleName().toLowerCase()), Bar.class, String.class);
         }
 
-        @Path("addBar")
+        @Path("bar")
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
@@ -194,7 +194,7 @@ To configure the RESTful endpoints that will provide access to create and fetch 
             return result.getSavedObject();
         }
 
-        @Path("listBars")
+        @Path("bars")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Bar> listBars() {
@@ -203,9 +203,9 @@ To configure the RESTful endpoints that will provide access to create and fetch 
 
     }
 
-The `getJacksonDBCollection` method uses the MongoDB connection that was setup in `BarServer` to provide access to the MongoDB collection that stores the `Bar` objects.  The `addBar` method has a `Path` of `addBar` meaning it will be accessible via HTTP requests to the `/addBar` URL.  It also only handles `POST` requests and consumes & produces "application/json" content.  If you start the `BarServer` locally you can test this method using the `curl` command:
+The `getJacksonDBCollection` method uses the MongoDB connection that was setup in `BarServer` to provide access to the MongoDB collection that stores the `Bar` objects.  The `addBar` method has a `Path` of `bar` meaning it will be accessible via HTTP requests to the `/bar` URL.  It also only handles `POST` requests and consumes & produces `application/json` content.  If you start the `BarServer` locally you can test this method using the `curl` command:
 
-    curl -d '{"name":"foo"}' -H "Content-type:application/json" http://localhost:8080/addBar
+    curl -d '{"name":"foo"}' -H "Content-type:application/json" http://localhost:8080/bar
 
 The JSON data that is being sent to the server is automatically deserialized into a `Bar` instance.  That object is added to the MongoDB collection and the resulting `Bar` now containing a primary key is returned.  You should see something like:
 
@@ -213,7 +213,7 @@ The JSON data that is being sent to the server is automatically deserialized int
 
 The `listBars` method simple fetches all of the `Bar` objects from the MongoDB collection and returns the `List` of `Bar` objects.  To test `listBars` locally with `curl` simply run:
 
-    curl -H "Content-type:application/json" http://localhost:8080/listBars
+    curl -H "Content-type:application/json" http://localhost:8080/bars
 
 You will see a JSON array containing the list of serialized `Bar` objects like:
 
@@ -228,7 +228,7 @@ The JavaScript & jQuery Client
 You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks for resources in the `src/main/webapp` directory and handles requests to those resources via requests to the `/content` URL.  This project contains a copy of the minified jQuery JavaScript library in the `src/main/webapp/jquery-1.7.min.js` file.  That library is available via requests to the `/content/jquery-1.7.min.js` URL.  There is also a `src/main/webapp/index.js` file which is the entire client-side / UI of this application.  It renders, creates, and fetches the `Bar` objects from the RESTful services using jQuery and renders the HTML form and list of `Bar` objects.  Here is the contents of the `index.js` file:
 
     function loadbars() {
-        $.ajax("/listBars", {
+        $.ajax("/bars", {
             contentType: "application/json",
             success: function(data) {
                 $("#bars").children().remove();
@@ -241,7 +241,7 @@ You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks f
 
     function addbar() {
         $.ajax({
-            url: "/addBar",
+            url: "/bar",
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -269,7 +269,7 @@ You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks f
 
     });
 
-The `loadbars` function makes an `ajax` request (using jQuery) to `/listBars` and then updates the web page with the list.  The `addbar` function makes an `ajax` request to `/addBar`, passing it the JSON string for a `Bar` object containing the `name` specified in an input field.  The anonymous function `function() {` gets called when the page ready.  This function adds the unordered list to the page that will contain the "bars", calls the `loadbars` function, adds the form elements to create new bars, and adds event handlers for clicking on the "GO!" button / pressing the `Enter` key in the input field.  Both of those event handlers call the `addbar` function.
+The `loadbars` function makes an `ajax` request (using jQuery) to `/bars` and then updates the web page with the list.  The `addbar` function makes an `ajax` request to `/bar`, passing it the JSON string for a `Bar` object containing the `name` specified in an input field.  The anonymous function `function() {` gets called when the page ready.  This function adds the unordered list to the page that will contain the "bars", calls the `loadbars` function, adds the form elements to create new bars, and adds event handlers for clicking on the "GO!" button / pressing the `Enter` key in the input field.  Both of those event handlers call the `addbar` function.
 
 This final thing this application needs is a simple HTML page that will bootstrap the application in the browser by loading the jQuery library and the `index.js` JavaScript.  This could potentially also be a static file.  However, shortly we will load the client-side of the app (`index.js` and `jquery-1.7.min.js` from a Content Delivery Network (CDN) which will require our bootstrap file to change based on the environment it's running in (thus the reason for the `contentUrl` property in the `BarServer` class).  To handle this there is a `GET` request handler in `BarResource` that handles requests to the `/` URL and produces `text/html` content:
 
@@ -293,28 +293,30 @@ If you are running the application locally you should be able to add new "bars" 
 Adding a new "Bar" from the form should do a `POST` request and then refresh the list of "bars" via a `GET` request.  Now that we have a fully functional Client/Server web app lets deploy it on the cloud and then load the client-side from a CDN.
 
 
-Deploying on the Cloud with Heroku and Amazon CloudFront
---------------------------------------------------------
+Deploying on the Cloud with Heroku
+----------------------------------
 
 To deploy the application on the cloud you can use Heroku, a Java-capable Platform-as-a-Service (PaaS) provider.  For this example we will upload the code via git to Heroku.  This method supports "Continuous Delivery" by making incremental changes very easy to deploy.  Everytime new code is received by Heroku (through a git push), the Maven build will be run and the new version deployed.  Follow these steps to deploy your copy of this app on Heroku:
 
-1) [Signup for a Heroku account](http://heroku.com/signup).  You will be able to deploy and run this application for free on one [dyno](https://devcenter.heroku.com/articles/dynos).
+1) [Signup for a Heroku account](https://heroku.com/signup).  You will be able to deploy and run this application for free on one [dyno](https://devcenter.heroku.com/articles/dynos).
 
-2) [Install the Heroku Toolbelt](http://toolbelt.heroku.com).
+2) [Verify your Heroku account](https://heroku.com/verify). (Required to use the free tier of the MongoLab add-on)
 
-3) Login to Heroku from the command line:
+3) [Install the Heroku Toolbelt](http://toolbelt.heroku.com).
+
+4) Login to Heroku from the command line:
 
         heroku login
 
 This will also help you setup your SSH key and associate it with your Heroku account.  The SSH key will be used for authenticating git pushes (uploads).
 
-4) Provision a new app on Heroku (using the [cedar stack](https://devcenter.heroku.com/articles/cedar)) with the [MongoLab add-on](https://addons.heroku.com/mongolab) (run this command in the root of your project):
+5) Provision a new app on Heroku (using the [cedar stack](https://devcenter.heroku.com/articles/cedar)) with the [MongoLab add-on](https://addons.heroku.com/mongolab) (run this command in the root of your project):
 
         heroku create --stack cedar --addons mongolab
 
 The git remote endpoint for the newly created app will be named "heroku" and will be automatically added to your git configuration.
 
-5) Using git, upload your application to Heroku:
+6) Using git, upload your application to Heroku:
 
         git push heroku master
 
@@ -328,13 +330,18 @@ Once the git push is complete you should be able to open your app in the browser
 
         heroku open
 
-6) By default caching and 304 handling was turned off for local development.  Turn that on by setting the `FILE_CACHE_ENABLED` environment variable on Heroku:
+7) By default caching and 304 handling was turned off for local development.  Turn that on by setting the `FILE_CACHE_ENABLED` environment variable on Heroku:
 
         heroku config:add FILE_CACHE_ENABLED=true
 
 You can see a full list of environment variables for your application (including `MONGOLAB_URI` that was set by the MongoLab add-on) by running:
 
         heroku config
+
+Congrats!  Your application is now running on the cloud!
+
+Serving the Client-side from the AWS CloudFront CDN
+---------------------------------------------------
 
 At this point everything should be working wonderfully on the cloud.  But we can take things one step further to increase performance of the app.  CDNs will edge catch static assets around the world, meaning that a copy of the content is placed very near the consumer of the content.  This process really only works for static assets but since the client-side of this application is now static assets (`index.js` and `jquery-1.7.min.js`) those files can be loaded from a CDN instead of from the more centralized server on Heroku.  The HTML page that bootstraps the app will still be loaded directly from Heroku because it's not fully static and because we want want to avoid cross-origin browser restrictions.  To avoid the cross-origin browser restictions the page the user loads in their browser must be on the same domain as the RESTful services.
 

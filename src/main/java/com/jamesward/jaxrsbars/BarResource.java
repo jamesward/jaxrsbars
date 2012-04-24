@@ -26,7 +26,7 @@ public class BarResource {
                 "</html>";
     }
 
-    @Path("addBar")
+    @Path("bar")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -35,7 +35,7 @@ public class BarResource {
         return result.getSavedObject();
     }
     
-    @Path("listBars")
+    @Path("bars")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Bar> listBars() {
