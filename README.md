@@ -1,17 +1,17 @@
 Modern Web Apps with JAX-RS, MongoDB, JSON, and jQuery
 ======================================================
 
-We are in the midst of a paradygm shift that will dramatically change how many of us build and deploy our software.  In the late 90's software began moving to the web.  The prevelence of the web browser provided our users an easy way to interact with our software without having to install thick client apps that were hard to upgrade and usually not cross-platform.  But we only used the browser as a dumb terminal with very limited capabilities.  All of the logic of the application happened on the server and each interaction required a roundtrip with the server which consequently had to store tons of UI state information.  In some ways this model is better than the thick-client approach but we have uncovered many of it's drawbacks and are now working our way back towards the client/server architecture - this time the modern web browser is the universal thick-client.
+We are in the midst of a paradigm shift that will dramatically change how many of us build and deploy software.  In the late 90's software began moving to the web, and the prevalence of the web browser provided users with an easy way to interact with software without having to install thick client apps that were hard to upgrade and usually, not available cross-platform. We only used the browser as a dumb terminal with very limited capabilities. The 'logic of the application' happened on the server and each interaction required a roundtrip to and from the server which, as a result had to store tons of UI state information. In some ways this model is better than the thick-client approach but in the ensuing years we have uncovered many drawbacks to this approach and today, we are now working our way back towards client/server architecture - and this time the modern web browser 'is' the universal thick-client.
 
-Over the past few years it has been common for web apps to use the browser as more than just an HTML-capable dumb terminal.  In the Ajax revolution many of us began doing partial page refreshes and client-side form validation.  But to go further we needed more modern web browsers with faster JavaScript execution engines, more powerful CSS capabilities, and more APIs.  This is exactly what is now happening under the "HTML5" banner.  HTML5 technically refers to a collection of browser standards, but to most developers it really means "the browser is a now universal think-client".  The splurge in mobile apps is also driving this great transition back to a client/server architecture.  Ultimately what this all means for you is that web application architectures are changing.
+Over the past few years it has been common for web apps to use the browser as more than a HTML-capable dumb terminal. In the Ajax revolution many of us began doing partial page refreshes and client-side form validation. But to go further we needed more modern web browsers with their faster JavaScript execution engines, more powerful CSS capabilities, and more APIs. Today this is happening under the "HTML5" banner. While HTML5 technically refers to a collection of browser standards, to most developers it really means "the browser is a now universal think-client." The growth in mobile apps is also driving this great transition back to a client/server architecture. Ultimately what this all means for you and I is that web application architectures are changing.
 
 
 The Web Client/Server Architecture
 ----------------------------------
 
-The modern web application architecure moves the User Interface to the client where all user interactions are handled on the client-side.  All UI state also moves to the client-side.  Then the client just makes calls to the server when it needs to access shared data or communicate with other clients / systems.  The client talks to the server through HTTP using a RESTful pattern or possibly the newer Web Sockets protocol which allows for bidirectional communication.  The RESTful pattern is basically a way to map the standard HTTP verbs (like GET, POST, PUT, DELETE) to actions the client wants to perform on the back-end / shared data.  Today the data is typically serialized into JSON (JavaScript Object Notation) because it is simple and universally supported.  The RESTful services should also be stateless, meaning no data should be held in the web tier between requests (with the possible exception of cached data).  Ultimately this turns the web tier into a simple proxy layer that provides an endpoint for serialized data.
+Modern web application architecture moves the UI to the client, where all user interactions are handled on the client-side. All UI state, too, moves to the client-side. The client then just makes calls to the server when it needs to access shared data or communicate with other clients / systems.  The client talks to the server through HTTP using a RESTful pattern or possibly the newer WebSockets protocol which allows for bidirectional communication. This RESTful pattern is basically a way to map standard HTTP verbs (like GET, POST, PUT, DELETE) to actions the client wants to perform on the back-end / shared data. Today data is typically serialized into JSON (JavaScript Object Notation) because it is simple and universally supported. The RESTful services should also be stateless, and no data should be held in the web tier between requests (with the possible exception of cached data). Ultimately, this turns the web tier into a simple proxy layer that provides an endpoint for serialized data.
 
-There are many different ways to build a browser-based client but for this example I will use jQuery and JavaScript since they are the most common.  There are also many ways to expose the RESTful services.  For this example I will use JAX-RS since it is the Java standard for RESTful services.  For back-end data persistence this example will use MongoDB, a NoSQL database.
+There are many different ways to build a browser-based client but for this example I will use jQuery and JavaScript since they are the most common. There are also many ways to expose the RESTful services, here I will use JAX-RS since it is the Java standard for RESTful services. For back-end data persistence this example will also use MongoDB, a NoSQL database.
 
 The code for this example is available at:  
 http://github.com/jamesward/jaxrsbars
@@ -24,7 +24,9 @@ To get a copy of this application locally, use git from the command-line or from
 The JAX-RS & MongoDB Server
 ---------------------------
 
-Lets start by setting up a server.  Typically this means using Tomcat, creating WAR files, etc.  But many developers are now gravitating towards a containerless approach that makes it easier to have dev/prod parity and works well for quick development iterations.  In the containerless approach the HTTP handler is just another library in your application.  Instead of deploying a partial application into a container, the application contains everything it needs and is simply "run".  Lets start with a Maven build that includes the dependencies needed to setup a containerless JAX-RS server using Jersey, Jackson, and the Grizzly HTTP handling library.  Here is the `pom.xml` file for the Maven build:
+Let's start by setting up a server. Typically this means using Apache Tomcat, creating WAR files, etc.  In modern app development we now see Java devs gravitating towards a 'containerless' approach that makes it far easier to have dev/prod parity and works very well for quick development iterations. By taking the containerless approach, the HTTP handler is treated as just another library in your application.  Instead of deploying a partial application into a container, the application contains everything it needs and just "runs".
+
+Here is the `pom.xml` file for a Maven build that includes all the dependencies needed to setup a containerless JAX-RS server using Jersey, Jackson, and the Grizzly HTTP handling library:
 
     <?xml version="1.0" encoding="UTF-8"?>
     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -143,7 +145,9 @@ Here is the `com.jamesward.jaxrsbars.BarServer` class that starts the Grizzly se
 
 Notice that the HTTP port, MongoDB connection URI, and the content URL have default values for local development but they can also be set via environment variables.  This provides a simple way to configure the application for different environments.  At the end of this article we will run this application on Heroku where those values will come from the environment.  There is also an environment variable named `FILE_CACHE_ENABLED` that allows the static file cache to be turned on and off.  Turning the file cache off provides a simple way to shorten the change / test loop in development while turning it ok provides better performance in production.
 
-Since this example uses MongoDB for data persistence, if you want to do local development on this project you will need to install the MongoDB server on your system.  To start the `BarServer` locally you will first need to do a Maven build:
+Since this example uses MongoDB for data persistence, if you want to do local development on this project you will need to install the MongoDB server on your system.
+
+To start the `BarServer` locally you will first need to do a Maven build:
 
     mvn package
 
@@ -165,9 +169,9 @@ This application will store a list of "bars" so there is a simple Java object na
         public String name;
     }
 
-The `@Id` annotation will be used by the `mongo-jackson-mapper` library to determine which file will store the primary key.  Each `Bar` also has a `name` property.  For this example I'm using simple direct field access instead of the more verbose getters & setters.
+The `@Id` annotation will be used by the `mongo-jackson-mapper` library to determine which property will store the primary key.  Each `Bar` also has a `name` property.  For this example I'm using simple direct field access instead of the more verbose getters & setters.
 
-To configure the RESTful endpoints that will provide access to create and fetch the `Bar` objects there is a Java object named `com.jamesward.jaxrsbars.BarResource` containing (I've ommitted the `index` method here but will cover it shortly):
+To configure the RESTful endpoints that will provide access to create and fetch the `Bar` objects there is a Java object named `com.jamesward.jaxrsbars.BarResource` containing the following.  (Note: I've ommitted the `index` method you will see in the source, but will cover it shortly.)
 
     package com.jamesward.jaxrsbars;
 
@@ -211,7 +215,7 @@ The JSON data that is being sent to the server is automatically deserialized int
 
     {"id":"4f83185e986c2baad17bbf8b","name":"foo"}
 
-The `listBars` method simple fetches all of the `Bar` objects from the MongoDB collection and returns the `List` of `Bar` objects.  To test `listBars` locally with `curl` simply run:
+The `listBars` method simply fetches all of the `Bar` objects from the MongoDB collection and returns the `List` of `Bar` objects.  To test `listBars` locally with `curl` simply run:
 
     curl -H "Content-type:application/json" http://localhost:8080/bars
 
@@ -269,9 +273,9 @@ You may have noticed that `BarServer` sets up a `StaticHttpHandler` that looks f
 
     });
 
-The `loadbars` function makes an `ajax` request (using jQuery) to `/bars` and then updates the web page with the list.  The `addbar` function makes an `ajax` request to `/bar`, passing it the JSON string for a `Bar` object containing the `name` specified in an input field.  The anonymous function `function() {` gets called when the page ready.  This function adds the unordered list to the page that will contain the "bars", calls the `loadbars` function, adds the form elements to create new bars, and adds event handlers for clicking on the "GO!" button / pressing the `Enter` key in the input field.  Both of those event handlers call the `addbar` function.
+The `loadbars` function makes an `ajax` request (using jQuery) to `/bars` and then updates the web page with the list.  The `addbar` function makes an `ajax` request to `/bar`, passing it the JSON string for a `Bar` object containing the `name` specified in an input field.  The anonymous function `function() {` gets called when the page ready.  This function adds the unordered list that will contain the "bars" to the page, calls the `loadbars` function, adds the form elements to create new bars, and adds event handlers for clicking on the "GO!" button / pressing the `Enter` key in the input field.  Both of those event handlers call the `addbar` function.
 
-This final thing this application needs is a simple HTML page that will bootstrap the application in the browser by loading the jQuery library and the `index.js` JavaScript.  This could potentially also be a static file.  However, shortly we will load the client-side of the app (`index.js` and `jquery-1.7.min.js` from a Content Delivery Network (CDN) which will require our bootstrap file to change based on the environment it's running in (thus the reason for the `contentUrl` property in the `BarServer` class).  To handle this there is a `GET` request handler in `BarResource` that handles requests to the `/` URL and produces `text/html` content:
+This final thing this application needs is a simple HTML page that will bootstrap the application in the browser by loading the jQuery library and the `index.js` JavaScript.  This could potentially also be a static file.  However, shortly we will load the client-side of the app (`index.js` and `jquery-1.7.min.js`) from a Content Delivery Network (CDN) which will require our bootstrapping HTML file to change based on the environment it's running in (thus the reason for the `contentUrl` property in the `BarServer` class).  This file could be served using a server-side templating library but for this example we will keep things simple and just add a `GET` request handler in `BarResource` that handles requests to the `/` URL and produces `text/html` content:
 
     @GET
     @Produces(MediaType.TEXT_HTML)
@@ -285,7 +289,7 @@ This final thing this application needs is a simple HTML page that will bootstra
                 "</html>";
     }
 
-This very simple HTML page simple loads `jQuery` and the `index.js` JavaScript files using `BarServer.contentUrl` as the basis.  Since `BarServer.contentUrl` can be changed through the `CONTENT_URL` environment variable it is now very easy to fetch those files from an alternative location.  However they are always available from this server via the `/content` URL.
+This very simple HTML page simple loads jQuery and the `index.js` JavaScript file using `BarServer.contentUrl` as the basis.  Since `BarServer.contentUrl` can be changed through the `CONTENT_URL` environment variable it is now very easy to fetch those files from an alternative location.  However they are always available from this server via the `/content` URL.
 
 If you are running the application locally you should be able to add new "bars" and see the list by opening [http://localhost:8080](http://localhost:8080) in your browser.  If you inspect the requests made to render the page (with a tool like Firebug) you should see four requests:  
 ![](https://github.com/jamesward/jaxrsbars/raw/master/img/requests.png)
@@ -296,11 +300,11 @@ Adding a new "Bar" from the form should do a `POST` request and then refresh the
 Deploying on the Cloud with Heroku
 ----------------------------------
 
-To deploy the application on the cloud you can use Heroku, a Java-capable Platform-as-a-Service (PaaS) provider.  For this example we will upload the code via git to Heroku.  This method supports "Continuous Delivery" by making incremental changes very easy to deploy.  Everytime new code is received by Heroku (through a git push), the Maven build will be run and the new version deployed.  Follow these steps to deploy your copy of this app on Heroku:
+To deploy the application on the cloud you can use Heroku, a Java-capable, Polyglot Platform-as-a-Service (PaaS) provider.  For this example we will upload the code via git to Heroku.  This method supports "Continuous Delivery" by making incremental changes very easy to deploy.  Every time new code is received by Heroku (through a git push), the Maven build will be run and the new version deployed. Follow these steps to deploy your copy of this app on Heroku:
 
 1) [Signup for a Heroku account](https://heroku.com/signup).  You will be able to deploy and run this application for free on one [dyno](https://devcenter.heroku.com/articles/dynos).
 
-2) [Verify your Heroku account](https://heroku.com/verify). (Required to use the free tier of the MongoLab add-on)
+2) [Verify your Heroku account](https://heroku.com/verify). (Required to use the free tier of the MongoLab add-on.)
 
 3) [Install the Heroku Toolbelt](http://toolbelt.heroku.com).
 
