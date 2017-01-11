@@ -1,51 +1,39 @@
 package com.jamesward.jaxrsbars;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.mongodb.DB;
-import com.mongodb.Mongo;
-import com.mongodb.MongoURI;
-import org.glassfish.grizzly.http.server.*;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpContainer;
-import org.glassfish.jersey.media.json.JsonJacksonModule;
-import org.glassfish.jersey.server.ContainerFactory;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
+import org.glassfish.grizzly.http.server.HttpHandler;
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
 
 public class BarServer {
 
-    public static DB mongoDB;
+    static Datastore datastore;
 
     public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException {
+        MongoClientURI mongoClientURI = new MongoClientURI(System.getenv("MONGOLAB_URI") != null ? System.getenv("MONGOLAB_URI") : "mongodb://127.0.0.1:27017/jaxrsbars");
+        MongoClient mongoClient = new MongoClient(mongoClientURI);
+        Morphia morphia = new Morphia();
+        morphia.map(Bar.class);
+        datastore = morphia.createDatastore(mongoClient, mongoClientURI.getDatabase());
 
-        MongoURI mongolabUri = new MongoURI(System.getenv("MONGOLAB_URI") != null ? System.getenv("MONGOLAB_URI") : "mongodb://127.0.0.1:27017/hello");
-        Mongo m = new Mongo(mongolabUri);
-        mongoDB = m.getDB(mongolabUri.getDatabase());
-        if ((mongolabUri.getUsername() != null) && (mongolabUri.getPassword() != null)) {
-            mongoDB.authenticate(mongolabUri.getUsername(), mongolabUri.getPassword());
-        }
-        
-        
-        final int port = System.getenv("PORT") != null ? Integer.valueOf(System.getenv("PORT")) : 8080;
-        
-        final HttpServer server = HttpServer.createSimpleServer("src/main/webapp", port);
-        
+        final String port = System.getenv("PORT")!=null ? System.getenv("PORT") : "8080";
+        final URI apiUri = URI.create(String.format("http://0.0.0.0:%s/api", port));
+
         final ResourceConfig resourceConfig = new ResourceConfig(BarResource.class);
-        resourceConfig.addModules(new JsonJacksonModule());
-        
-        final GrizzlyHttpContainer jerseyHandler = ContainerFactory.createContainer(GrizzlyHttpContainer.class, resourceConfig);
-        
-        server.getServerConfiguration().addHttpHandler(jerseyHandler, "/api");
-        
-        server.start();
+        HttpHandler httpHandler = new CLStaticHttpHandler(HttpServer.class.getClassLoader(), "/META-INF/resources/");
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                server.stop();
-            }
-        });
-        
-        Thread.currentThread().join();
+        final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(apiUri, resourceConfig);
+        server.getServerConfiguration().addHttpHandler(httpHandler, "/");
+
+        System.out.println(String.format("Starting Grizzly at: http://localhost:%s", port));
     }
 }

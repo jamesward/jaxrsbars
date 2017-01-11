@@ -1,8 +1,5 @@
 package com.jamesward.jaxrsbars;
 
-import net.vz.mongodb.jackson.JacksonDBCollection;
-import net.vz.mongodb.jackson.WriteResult;
-
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
@@ -10,24 +7,20 @@ import java.util.List;
 @Path("/")
 public class BarResource {
 
-    private JacksonDBCollection<Bar, String> getJacksonDBCollection() {
-        return JacksonDBCollection.wrap(BarServer.mongoDB.getCollection(Bar.class.getSimpleName().toLowerCase()), Bar.class, String.class);
-    }
-
     @Path("bar")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Bar addBar(Bar bar) {
-        WriteResult<Bar, String> result = getJacksonDBCollection().insert(bar);
-        return result.getSavedObject();
+        BarServer.datastore.save(bar);
+        return bar;
     }
-    
+
     @Path("bars")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Bar> listBars() {
-        return getJacksonDBCollection().find().toArray();
+        return BarServer.datastore.createQuery(Bar.class).asList();
     }
 
 }
